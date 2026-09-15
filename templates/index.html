@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Payment Fraud Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 380px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        small {
+            color: #666;
+            font-size: 12px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e2e3e5;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Fraud Prediction</h2>
+        <form id="fraudForm">
+            <label for="type_code">Transaction Type</label>
+            <select id="type_code" required>
+                <option value="0">Cash Out (Money leaving your account)</option>
+                <option value="1">Cash In (Money added to your account)</option>
+                <option value="2">Transfer (To another account)</option>
+                <option value="3">Debit (Card purchase)</option>
+                <option value="4">Payment (Bill or service payment)</option>
+            </select>
+
+            <label for="amt_bin">Transaction Amount</label>
+            <select id="amt_bin" required>
+                <option value="0">Very Low (₹0 - ₹7,500)</option>
+                <option value="1">Low (₹7,501 - ₹37,500)</option>
+                <option value="2">Medium (₹37,501 - ₹1,50,000)</option>
+                <option value="3">High (₹1,50,001 - ₹3,75,000)</option>
+                <option value="4">Very High (₹3,75,001+)</option>
+            </select>
+            <small>Select the approximate transaction amount range.</small>
+
+            <label for="diff_orig_disc">Origination Difference (0-4)</label>
+            <select id="diff_orig_disc" required>
+                <option value="0">No difference</option>
+                <option value="1">Small difference</option>
+                <option value="2">Moderate difference</option>
+                <option value="3">High difference</option>
+                <option value="4">Very high difference</option>
+            </select>
+            <small>Difference in transaction from your usual behavior.</small>
+
+            <label for="diff_dest_disc">Destination Difference (0-3)</label>
+            <select id="diff_dest_disc" required>
+                <option value="0">No difference</option>
+                <option value="1">Small difference</option>
+                <option value="2">Moderate difference</option>
+                <option value="3">High difference</option>
+            </select>
+            <small>Difference from usual destination account behavior.</small>
+
+            <!-- <label for="same_account">Same Account</label>
+            <select id="same_account" required>
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+            </select>
+            <small>Is the sender and receiver the same account?</small> -->
+
+            <label for="hour">Transaction Hour (0-23)</label>
+            <input type="number" id="hour" min="0" max="23" value="12" required>
+            <small>Hour of the day when the transaction occurred.</small>
+
+            <button type="submit">Predict Fraud</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('fraudForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                type_code: parseInt(document.getElementById('type_code').value),
+                amt_bin: parseInt(document.getElementById('amt_bin').value),
+                diff_orig_disc: parseInt(document.getElementById('diff_orig_disc').value),
+                diff_dest_disc: parseInt(document.getElementById('diff_dest_disc').value),
+                hour: parseInt(document.getElementById('hour').value)
+            };
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerText = `Fraud Probability: ${data.probability}`;
+        });
+    </script>
+</body>
+</html>
